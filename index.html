@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رعاية بلس - السودان</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" >
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" >
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" >
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" >
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <style>
+        :root {
+            --primary: #1e6f5c;
+            --primary-light: #29bb89;
+            --primary-dark: #145249;
+            --accent: #e8ac24;
+            --gold: #d4a017;
+            --bg-light: #f8faf9;
+            --bg-dark: #0d1117;
+            --card-light: #ffffff;
+            --card-dark: #161b22;
+            --text-light: #1a1a2e;
+            --text-dark: #e6edf3;
+            --pharmacy: #16a34a;
+            --clinic: #2563eb;
+            --center: #ea580c;
+            --lab: #9333ea;
+            --optics: #0891b2;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            min-height: 100vh;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #0f3d36 100%);
+            padding: 0.75rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 25px rgba(30, 111, 92, 0.4);
+            position: relative;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: white;
+        }
+
+        .logo-text h1 {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .logo-text span {
+            color: var(--accent);
+        }
+
+        .header-subtitle {
+            color: rgba(255,255,255,0.85);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .sudan-flag {
+            display: flex;
+            gap: 2px;
+        }
+
+        .sudan-flag span {
+            width: 3px;
+            height: 10px;
+            border-radius: 1px;
+        }
+
+        /* Search & Filters Bar */
+        .controls-bar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.6rem 1rem;
+            background: var(--card-light);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        body.dark .controls-bar {
+            background: var(--card-dark);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.6rem 1rem 0.6rem 2.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            background: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        body.dark .search-box input {
+            background: #21262d;
+            border-color: #30363d;
+            color: var(--text-dark);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(30, 111, 92, 0.15);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .filter-select {
+            padding: 0.6rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.85rem;
+            background: var(--bg-light);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        body.dark .filter-select {
+            background: #21262d;
+            border-color: #30363d;
+            color: var(--text-dark);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Type Filters */
+        .type-filters {
+            display: flex;
+            gap: 0.4rem;
+            padding: 0.5rem 1rem;
+            background: var(--card-light);
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body.dark .type-filters {
+            background: var(--card-dark);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 20px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+            background: #f1f5f4;
+            color: var(--text-light);
+        }
+
+        body.dark .filter-btn {
+            background: #21262d;
+            color: var(--text-dark);
+        }
+
+        .filter-btn.active {
+            color: white;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+        }
+
+        .filter-btn[data-type="all"].active { background: var(--primary); }
+        .filter-btn[data-type="pharmacy"].active { background: var(--pharmacy); }
+        .filter-btn[data-type="clinic"].active { background: var(--clinic); }
+        .filter-btn[data-type="center"].active { background: var(--center); }
+        .filter-btn[data-type="lab"].active { background: var(--lab); }
+        .filter-btn[data-type="optics"].active { background: var(--optics); }
+
+        .filter-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background: var(--card-light);
+            border-left: 1px solid rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            z-index: 500;
+        }
+
+        body.dark .sidebar {
+            background: var(--card-dark);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .sidebar.hidden {
+            transform: translateX(100%);
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+        }
+
+        .sidebar-header {
+            padding: 0.75rem 1rem;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-header h3 {
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar-count {
+            background: rgba(255,255,255,0.2);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+
+        .sidebar-toggle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .facilities-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .facility-card {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            animation: fadeInUp 0.4s ease forwards;
+        }
+
+        body.dark .facility-card {
+            background: #21262d;
+        }
+
+        .facility-card:hover {
+            transform: translateX(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px rgba(30, 111, 92, 0.15);
+        }
+
+        .facility-card.active {
+            border-color: var(--primary);
+            background: rgba(30, 111, 92, 0.1);
+        }
+
+        .facility-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.4rem;
+        }
+
+        .facility-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-light);
+            line-height: 1.3;
+        }
+
+        body.dark .facility-name {
+            color: var(--text-dark);
+        }
+
+        .facility-discount {
+            background: var(--primary);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .facility-meta {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .facility-type-badge {
+            font-size: 0.7rem;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .facility-city {
+            font-size: 0.75rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+
+        /* Map */
+        #map {
+            flex: 1;
+            z-index: 1;
+        }
+
+        /* Map Controls */
+        .map-controls {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 400;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .map-btn {
+            width: 40px;
+            height: 40px;
+            background: var(--card-light);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            transition: all 0.3s;
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        body.dark .map-btn {
+            background: var(--card-dark);
+            color: var(--text-dark);
+        }
+
+        .map-btn:hover {
+            transform: scale(1.1);
+            background: var(--primary);
+            color: white;
+        }
+
+        .map-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Toggle Sidebar Button (Mobile) */
+        .toggle-sidebar-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 400;
+        }
+
+        /* Leaflet Customization */
+        .leaflet-popup-content-wrapper {
+            border-radius: 16px !important;
+            padding: 0 !important;
+            overflow: hidden;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.25) !important;
+        }
+
+        body.dark .leaflet-popup-content-wrapper {
+            background: var(--card-dark) !important;
+        }
+
+        .leaflet-popup-content {
+            margin: 0 !important;
+            min-width: 260px;
+        }
+
+        .leaflet-popup-close-button {
+            color: white !important;
+            font-size: 20px !important;
+            padding: 6px 8px !important;
+            z-index: 10;
+        }
+
+        .popup-card {
+            overflow: hidden;
+        }
+
+        .popup-header {
+            padding: 1rem;
+            color: white;
+        }
+
+        .popup-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .popup-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .popup-location {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .popup-body {
+            padding: 1rem;
+            background: var(--card-light);
+        }
+
+        body.dark .popup-body {
+            background: var(--card-dark);
+        }
+
+        .discount-box {
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            border-radius: 10px;
+            padding: 0.75rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+            color: white;
+        }
+
+        .discount-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .discount-label {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .popup-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--text-light);
+            padding: 0.3rem 0;
+        }
+
+        body.dark .detail-row {
+            color: var(--text-dark);
+        }
+
+        .detail-icon {
+            width: 24px;
+            height: 24px;
+            background: #f0f7f5;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+
+        body.dark .detail-icon {
+            background: #21262d;
+        }
+
+        .leaflet-popup-tip {
+            background: var(--card-light) !important;
+        }
+
+        body.dark .leaflet-popup-tip {
+            background: var(--card-dark) !important;
+        }
+
+        /* Custom Markers */
+        .custom-marker {
+            position: relative;
+        }
+
+        .marker-pin {
+            width: 36px;
+            height: 36px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.3);
+            border: 3px solid white;
+            transition: all 0.3s ease;
+        }
+
+        .marker-pin:hover {
+            transform: rotate(-45deg) scale(1.15);
+        }
+
+        .marker-icon {
+            transform: rotate(45deg);
+            font-size: 14px;
+        }
+
+        .marker-discount {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        /* Cluster Markers */
+        .marker-cluster-small,
+        .marker-cluster-medium,
+        .marker-cluster-large {
+            background: rgba(30, 111, 92, 0.6) !important;
+        }
+
+        .marker-cluster-small div,
+        .marker-cluster-medium div,
+        .marker-cluster-large div {
+            background: var(--primary) !important;
+            color: white !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-weight: 700 !important;
+        }
+
+        /* Stats Footer */
+        .stats-footer {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background: var(--card-light);
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+
+        body.dark .stats-footer {
+            background: var(--card-dark);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .stat-box {
+            padding: 0.5rem;
+            text-align: center;
+            border-left: 1px solid rgba(0,0,0,0.06);
+        }
+
+        body.dark .stat-box {
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .stat-box:last-child {
+            border-left: none;
+        }
+
+        .stat-number {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .stat-text {
+            font-size: 0.65rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        /* Company Footer */
+        .company-footer {
+            background: linear-gradient(135deg, #f8faf9 0%, #e8f5f2 100%);
+            border-top: 1px solid rgba(0,0,0,0.06);
+            padding: 0.6rem 1rem;
+        }
+
+        body.dark .company-footer {
+            background: linear-gradient(135deg, #161b22 0%, #1a2332 100%);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .footer-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-logo {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            object-fit: contain;
+        }
+
+        .footer-name {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .footer-link {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .footer-link.whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .footer-link.whatsapp:hover {
+            background: #1da851;
+            transform: translateY(-2px);
+        }
+
+        .footer-link.facebook {
+            background: #1877f2;
+            color: white;
+        }
+
+        .footer-link.facebook:hover {
+            background: #0d65d9;
+            transform: translateY(-2px);
+        }
+
+        .footer-link i {
+            font-size: 1rem;
+        }
+
+        .footer-developer {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .footer-developer span {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .footer-developer img {
+            height: 25px;
+            object-fit: contain;
+        }
+
+        /* Welcome Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: var(--card-light);
+            border-radius: 20px;
+            max-width: 400px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.4s ease;
+        }
+
+        body.dark .modal-content {
+            background: var(--card-dark);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 1.5rem;
+            text-align: center;
+            color: white;
+        }
+
+        .modal-header img {
+            width: 80px;
+            height: 80px;
+            border-radius: 16px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .modal-header p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .tip-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-light);
+            border-radius: 12px;
+        }
+
+        body.dark .tip-item {
+            background: #21262d;
+        }
+
+        .tip-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary) 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .tip-text h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+            color: var(--text-light);
+        }
+
+        body.dark .tip-text h4 {
+            color: var(--text-dark);
+        }
+
+        .tip-text p {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .modal-footer {
+            padding: 0 1.5rem 1.5rem;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 111, 92, 0.4);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 85%;
+                max-width: 320px;
+                transform: translateX(100%);
+            }
+
+            .sidebar.visible {
+                transform: translateX(0);
+            }
+
+            .controls-bar {
+                padding: 0.5rem;
+            }
+
+            .search-box {
+                min-width: 150px;
+            }
+
+            .filter-select {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .stats-footer {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-content {
+                justify-content: center;
+                gap: 0.75rem;
+            }
+
+            .footer-brand {
+                order: 1;
+            }
+
+            .footer-links {
+                order: 2;
+                gap: 0.5rem;
+            }
+
+            .footer-developer {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .footer-link span {
+                display: none;
+            }
+
+            .footer-link {
+                padding: 0.5rem;
+                border-radius: 50%;
+            }
+
+            .modal-content {
+                margin: 0.5rem;
+            }
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #64748b;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+        }
+
+        .no-results p {
+            font-size: 0.9rem;
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            transition: opacity 0.5s ease;
+        }
+
+        body.dark .loading-overlay {
+            background: var(--bg-dark);
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">جاري تحميل الخريطة...</div>
+    </div>
+
+    <!-- Welcome Modal -->
+    <div class="modal-overlay" id="welcomeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="https://pfst.cf2.poecdn.net/base/image/159d317cf4f9e5c630ca28851a4d1b6613002263974a0ba7409d602e21896ddf?w=1024&h=1024" alt="رعاية بلس">
+                <h2>مرحباً بك في رعاية بلس</h2>
+                <p>شبكة المؤسسات الطبية المتعاقدة في السودان</p>
+            </div>
+            <div class="modal-body">
+                <div class="tip-item">
+                    <div class="tip-icon"><i class="fas fa-search"></i></div>
+                    <div class="tip-text">
+                        <h4>ابحث بسهولة</h4>
+                        <p>استخدم شريط البحث للعثور على أي مؤسسة بالاسم أو المدينة</p>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon"><i class="fas fa-filter"></i></div>
+                    <div class="tip-text">
+                        <h4>فلتر النتائج</h4>
+                        <p>اختر نوع المؤسسة أو المدينة لتصفية النتائج</p>
+                    </div>
+                </div>
+                <div class="tip-item">
+                    <div class="tip-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div class="tip-text">
+                        <h4>اضغط على العلامة</h4>
+                        <p>اضغط على أي علامة لعرض تفاصيل المؤسسة ونسبة الخصم</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="start-btn" onclick="closeWelcome()">
+                    <i class="fas fa-rocket"></i>
+                    ابدأ الآن
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="https://pfst.cf2.poecdn.net/base/image/159d317cf4f9e5c630ca28851a4d1b6613002263974a0ba7409d602e21896ddf?w=1024&h=1024" alt="رعاية بلس">
+                </div>
+                <div class="logo-text">
+                    <h1>رعاية <span>بلس</span></h1>
+                    <div class="header-subtitle">
+                        <div class="sudan-flag">
+                            <span style="background:#d21034"></span>
+                            <span style="background:#fff"></span>
+                            <span style="background:#000"></span>
+                            <span style="background:#007229"></span>
+                        </div>
+                        شبكة المؤسسات الطبية
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search & Filters -->
+        <div class="controls-bar">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="ابحث بالاسم أو العنوان...">
+                <i class="fas fa-search"></i>
+            </div>
+            <select class="filter-select" id="cityFilter">
+                <option value="all">كل المدن</option>
+            </select>
+            <select class="filter-select" id="discountFilter">
+                <option value="all">كل الخصومات</option>
+                <option value="high">خصم 20%+</option>
+                <option value="medium">خصم 10-19%</option>
+                <option value="low">خصم أقل من 10%</option>
+            </select>
+        </div>
+
+        <!-- Type Filters -->
+        <div class="type-filters">
+            <button class="filter-btn active" data-type="all">
+                <i class="fas fa-th"></i> الكل
+            </button>
+            <button class="filter-btn" data-type="pharmacy">
+                <span class="filter-dot" style="background:var(--pharmacy)"></span>
+                صيدليات
+            </button>
+            <button class="filter-btn" data-type="clinic">
+                <span class="filter-dot" style="background:var(--clinic)"></span>
+                عيادات
+            </button>
+            <button class="filter-btn" data-type="center">
+                <span class="filter-dot" style="background:var(--center)"></span>
+                مراكز
+            </button>
+            <button class="filter-btn" data-type="lab">
+                <span class="filter-dot" style="background:var(--lab)"></span>
+                مختبرات
+            </button>
+            <button class="filter-btn" data-type="optics">
+                <span class="filter-dot" style="background:var(--optics)"></span>
+                بصريات
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Map -->
+            <div id="map"></div>
+
+            <!-- Map Controls -->
+            <div class="map-controls">
+                <button class="map-btn" id="locateBtn" title="موقعي">
+                    <i class="fas fa-location-crosshairs"></i>
+                </button>
+                <button class="map-btn" id="fullscreenBtn" title="ملء الشاشة">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button class="map-btn" id="resetBtn" title="إعادة ضبط">
+                    <i class="fas fa-redo"></i>
+                </button>
+            </div>
+
+            <!-- Toggle Sidebar Button -->
+            <button class="map-btn toggle-sidebar-btn" id="toggleSidebarBtn" title="القائمة">
+                <i class="fas fa-list"></i>
+            </button>
+
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-hospital"></i> المؤسسات <span class="sidebar-count" id="facilityCount">0</span></h3>
+                    <button class="sidebar-toggle" id="closeSidebar">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="facilities-list" id="facilitiesList">
+                    <!-- Facilities will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Footer -->
+        <div class="stats-footer">
+            <div class="stat-box">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-text">مؤسسة متعاقدة</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="citiesCount">0</div>
+                <div class="stat-text">مدينة</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="avgDiscount">0%</div>
+                <div class="stat-text">متوسط الخصم</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number" id="maxDiscount">0%</div>
+                <div class="stat-text">أعلى خصم</div>
+            </div>
+        </div>
+
+        <div class="company-footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="https://pfst.cf2.poecdn.net/base/image/159d317cf4f9e5c630ca28851a4d1b6613002263974a0ba7409d602e21896ddf?w=1024&h=1024" alt="رعاية بلس" class="footer-logo">
+                    <span class="footer-name">رعاية بلس</span>
+                </div>
+                <div class="footer-links">
+                    <a href="https://wa.me/249123333660" target="_blank" class="footer-link whatsapp">
+                        <i class="fab fa-whatsapp"></i>
+                        <span>0123333660</span>
+                    </a>
+                    <a href="https://www.facebook.com/raayaplus" target="_blank" class="footer-link facebook">
+                        <i class="fab fa-facebook"></i>
+                        <span>صفحتنا</span>
+                    </a>
+                </div>
+                <div class="footer-developer">
+                    <span>تطوير</span>
+                    <img src="https://pfst.cf2.poecdn.net/base/image/1fff5befacbc2ef6049a7a329cf53be50fd932f14a6eeec0209830904393a357?w=1036&h=1080" alt="كيور لينك">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dark mode
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.classList.add('dark');
+        }
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+            document.body.classList.toggle('dark', e.matches);
+        });
+
+        // Facilities data
+        const facilities = [
+            { name: "صيدلية صن فالي", type: "pharmacy", typeName: "صيدلية", discount: 10, lat: 15.5007, lng: 32.5599, city: "الخرطوم", address: "الكلاكلة الوحدة شارع ابو عواض جوار مجمع الأطباء التخصصي", phone: "114980622", email: "Badrsaid74@yahoo.com" },
+            { name: "عيادة الدكتور علي عبدالسميع", type: "clinic", typeName: "عيادة", discount: 20, lat: 15.5027, lng: 32.5579, city: "الخرطوم", address: "الكلاكلة الوحدة شارع ابو عواض", phone: "0916392345", email: "" },
+            { name: "مجمع الأطباء التخصصي", type: "center", typeName: "مركز طبي", discount: 15, lat: 15.5047, lng: 32.5559, city: "الخرطوم", address: "الكلاكلة الوحدة شارع ابو عواض", phone: "+249 90 900 4585", email: "" },
+            { name: "مركز كثر الطبي", type: "center", typeName: "مركز طبي", discount: 10, lat: 15.5107, lng: 32.5499, city: "الخرطوم", address: "ابو ادم مربع 12", phone: "0117746501", email: "" },
+            { name: "مركز كمبر الطبي (أسنان - جلدية)", type: "center", typeName: "مركز طبي", discount: 20, lat: 15.5087, lng: 32.5539, city: "الخرطوم", address: "ابو ادم شارع نوبانيا", phone: "0912712720", email: "" },
+            { name: "مركز الإيقين الطبي", type: "center", typeName: "مركز طبي", discount: 10, lat: 15.4807, lng: 32.5299, city: "الخرطوم", address: "محلية جبل أولياء منطقة الشقلاب", phone: "0111627095", email: "Alooshhassan094@gmail.com" },
+            { name: "مجمع عيادات مقبولة التخصصي", type: "center", typeName: "مركز طبي", discount: 10, lat: 15.6445, lng: 32.4777, city: "امدرمان", address: "تقاطع الروضي الحارة13 جوار مدارس السودان", phone: "0900607198", email: "mutazof123@gmail.com" },
+            { name: "مختبرات كست للتحاليل الطبية", type: "lab", typeName: "مختبر", discount: 10, lat: 15.6345, lng: 32.4677, city: "امدرمان", address: "ام درمان الشهداء شرق مستشفى النيل", phone: "+249126154002", email: "systems_lab@yahoo.com" },
+            { name: "صيدلية المشكاة", type: "pharmacy", typeName: "صيدلية", discount: 10, lat: 16.6922, lng: 33.4347, city: "شندي", address: "شندي السوق أمام مستشفى شندي التعليمي", phone: "091 292 7487", email: "" },
+            { name: "معمل الخبير", type: "lab", typeName: "مختبر", discount: 30, lat: 16.6962, lng: 33.4387, city: "شندي", address: "شرق قسم القلب مستشفى الملك نمر", phone: "096 370 7555", email: "" },
+            { name: "بصريات نور العين", type: "optics", typeName: "بصريات", discount: 15, lat: 16.6882, lng: 33.4307, city: "شندي", address: "شندي السوق/جوار الحوادث", phone: "012 216 6554", email: "" },
+            { name: "مجمع الأفندي", type: "center", typeName: "مركز طبي", discount: 20, lat: 16.6942, lng: 33.4367, city: "شندي", address: "شندي غرب المسجد الكبير", phone: "091 293 4484", email: "" },
+            { name: "صيدلية إبن حيان شندي", type: "pharmacy", typeName: "صيدلية", discount: 5, lat: 16.6902, lng: 33.4327, city: "شندي", address: "شندي شارع المستشفى التعليمي غرب المحلية", phone: "910070729", email: "Nokia09100@hotmaill.com" },
+            { name: "عيادة اساور الطبية", type: "clinic", typeName: "عيادة", discount: 20, lat: 15.6280, lng: 32.5420, city: "بحري", address: "بحري الدروشاب جنوب شرق تقاطع 13", phone: "0123191489", email: "taifouryousef1@gmail.com" },
+            { name: "عيادة الماسة الطبية", type: "clinic", typeName: "عيادة", discount: 10, lat: 15.6380, lng: 32.5520, city: "بحري", address: "حلفاية الملوك بحري شارع المعونة", phone: "0916089907", email: "ahmed.abusineina@gmail.com" },
+            { name: "مركز الندى الصحي الخاص", type: "center", typeName: "مركز طبي", discount: 10, lat: 15.6480, lng: 32.5620, city: "بحري", address: "بحري شمال الدر", phone: "0911596068", email: "hemamaxmoon@gmail.com" },
+            { name: "مركز هذا الحلفايا الطبي", type: "center", typeName: "مركز طبي", discount: 10, lat: 15.6180, lng: 32.5320, city: "بحري", address: "مركز هذا الحلفايا الطبي", phone: "0967759071", email: "" },
+            { name: "مركز الجزيرة النموذجي", type: "center", typeName: "مركز طبي", discount: 10, lat: 15.6580, lng: 32.5720, city: "بحري", address: "الخرطوم بحري الكدرو شمال شرق محطة العوض", phone: "0966170309", email: "dr.mostafabgadi9719@gmail.com" },
+            { name: "مجمع العفران الطبي", type: "center", typeName: "مركز طبي", discount: 10, lat: 15.6080, lng: 32.5220, city: "بحري", address: "بحري شارع المعونة الحلفايا جنوب محطة الكيلو", phone: "0916370575", email: "mujtaba0996521720@gmail.com" },
+            { name: "صيدلية الحمد", type: "pharmacy", typeName: "صيدلية", discount: 10, lat: 14.4010, lng: 33.5270, city: "ود مدني", address: "ود مدني تقاطع شارع الجمهورية مع شارع الدكاترة", phone: "0968664523", email: "A7med11547@gmail.com" },
+        ];
+
+        // Type config
+        const typeConfig = {
+            pharmacy: { color: '#16a34a', icon: '💊' },
+            clinic: { color: '#2563eb', icon: '👨‍⚕️' },
+            center: { color: '#ea580c', icon: '🏨' },
+            lab: { color: '#9333ea', icon: '🔬' },
+            optics: { color: '#0891b2', icon: '👓' }
+        };
+
+        // State
+        let map, markerCluster;
+        let allMarkers = [];
+        let filteredFacilities = [...facilities];
+        let activeType = 'all';
+        let activeCity = 'all';
+        let activeDiscount = 'all';
+        let searchQuery = '';
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            populateCityFilter();
+            updateStats();
+            renderFacilitiesList();
+            setupEventListeners();
+
+            // Hide loading
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').classList.add('hidden');
+            }, 1000);
+
+            // Show welcome modal on first load
+            document.getElementById('welcomeModal').classList.remove('hidden');
+        });
+
+        function closeWelcome() {
+            document.getElementById('welcomeModal').classList.add('hidden');
+        }
+
+        function initMap() {
+            map = L.map('map').setView([15.5007, 32.5599], 7);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            markerCluster = L.markerClusterGroup({
+                maxClusterRadius: 50,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true
+            });
+
+            addMarkers(facilities);
+            map.addLayer(markerCluster);
+        }
+
+        function createMarker(facility) {
+            const config = typeConfig[facility.type];
+            const icon = L.divIcon({
+                className: 'custom-marker',
+                html: `
+                    <div class="marker-pin" style="background:${config.color}">
+                        <span class="marker-icon">${config.icon}</span>
+                    </div>
+                    <div class="marker-discount">${facility.discount}%</div>
+                `,
+                iconSize: [36, 36],
+                iconAnchor: [18, 36],
+                popupAnchor: [0, -36]
+            });
+
+            const marker = L.marker([facility.lat, facility.lng], { icon });
+            marker.bindPopup(createPopup(facility), { maxWidth: 300, minWidth: 260 });
+            marker.facility = facility;
+            return marker;
+        }
+
+        function createPopup(facility) {
+            const config = typeConfig[facility.type];
+            return `
+                <div class="popup-card">
+                    <div class="popup-header" style="background: linear-gradient(135deg, ${config.color} 0%, ${config.color}dd 100%)">
+                        <div class="popup-badge">${config.icon} ${facility.typeName}</div>
+                        <div class="popup-name">${facility.name}</div>
+                        <div class="popup-location">📍 ${facility.city}</div>
+                    </div>
+                    <div class="popup-body">
+                        <div class="discount-box">
+                            <div class="discount-value">${facility.discount}%</div>
+                            <div class="discount-label">خصم رعاية بلس</div>
+                        </div>
+                        <div class="popup-details">
+                            <div class="detail-row">
+                                <div class="detail-icon">📍</div>
+                                <span>${facility.address}</span>
+                            </div>
+                            <div class="detail-row">
+                                <div class="detail-icon">📞</div>
+                                <span style="direction:ltr">${facility.phone}</span>
+                            </div>
+                            ${facility.email ? `
+                            <div class="detail-row">
+                                <div class="detail-icon">📧</div>
+                                <span style="font-size:0.75rem">${facility.email}</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addMarkers(facilitiesToShow) {
+            markerCluster.clearLayers();
+            allMarkers = [];
+
+            facilitiesToShow.forEach(facility => {
+                const marker = createMarker(facility);
+                allMarkers.push(marker);
+                markerCluster.addLayer(marker);
+            });
+        }
+
+        function populateCityFilter() {
+            const cities = [...new Set(facilities.map(f => f.city))];
+            const select = document.getElementById('cityFilter');
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                select.appendChild(option);
+            });
+        }
+
+        function filterFacilities() {
+            filteredFacilities = facilities.filter(f => {
+                // Type filter
+                if (activeType !== 'all' && f.type !== activeType) return false;
+
+                // City filter
+                if (activeCity !== 'all' && f.city !== activeCity) return false;
+
+                // Discount filter
+                if (activeDiscount === 'high' && f.discount < 20) return false;
+                if (activeDiscount === 'medium' && (f.discount < 10 || f.discount >= 20)) return false;
+                if (activeDiscount === 'low' && f.discount >= 10) return false;
+
+                // Search filter
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    const matchName = f.name.toLowerCase().includes(query);
+                    const matchAddress = f.address.toLowerCase().includes(query);
+                    const matchCity = f.city.toLowerCase().includes(query);
+                    if (!matchName && !matchAddress && !matchCity) return false;
+                }
+
+                return true;
+            });
+
+            addMarkers(filteredFacilities);
+            renderFacilitiesList();
+            updateStats();
+
+            // Fit bounds if there are markers
+            if (filteredFacilities.length > 0) {
+                const bounds = L.latLngBounds(filteredFacilities.map(f => [f.lat, f.lng]));
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
+        }
+
+        function renderFacilitiesList() {
+            const list = document.getElementById('facilitiesList');
+            document.getElementById('facilityCount').textContent = filteredFacilities.length;
+
+            if (filteredFacilities.length === 0) {
+                list.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-search"></i>
+                        <p>لا توجد نتائج مطابقة</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filteredFacilities.map((f, i) => {
+                const config = typeConfig[f.type];
+                return `
+                    <div class="facility-card" data-index="${i}" style="animation-delay: ${i * 0.05}s">
+                        <div class="facility-card-header">
+                            <div class="facility-name">${f.name}</div>
+                            <div class="facility-discount">${f.discount}%</div>
+                        </div>
+                        <div class="facility-meta">
+                            <span class="facility-type-badge" style="background:${config.color}">${f.typeName}</span>
+                            <span class="facility-city"><i class="fas fa-map-marker-alt"></i> ${f.city}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add click listeners
+            list.querySelectorAll('.facility-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const index = parseInt(card.dataset.index);
+                    const facility = filteredFacilities[index];
+
+                    // Remove active from all
+                    list.querySelectorAll('.facility-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+
+                    // Fly to marker and open popup
+                    map.flyTo([facility.lat, facility.lng], 14, { duration: 0.5 });
+
+                    const marker = allMarkers.find(m => m.facility === facility);
+                    if (marker) {
+                        setTimeout(() => {
+                            markerCluster.zoomToShowLayer(marker, () => {
+                                marker.openPopup();
+                            });
+                        }, 600);
+                    }
+
+                    // Close sidebar on mobile
+                    if (window.innerWidth <= 768) {
+                        document.getElementById('sidebar').classList.remove('visible');
+                    }
+                });
+            });
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = filteredFacilities.length;
+
+            const cities = [...new Set(filteredFacilities.map(f => f.city))];
+            document.getElementById('citiesCount').textContent = cities.length;
+
+            if (filteredFacilities.length > 0) {
+                const avg = Math.round(filteredFacilities.reduce((s, f) => s + f.discount, 0) / filteredFacilities.length);
+                document.getElementById('avgDiscount').textContent = avg + '%';
+                document.getElementById('maxDiscount').textContent = Math.max(...filteredFacilities.map(f => f.discount)) + '%';
+            } else {
+                document.getElementById('avgDiscount').textContent = '0%';
+                document.getElementById('maxDiscount').textContent = '0%';
+            }
+        }
+
+        function setupEventListeners() {
+            // Type filters
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeType = btn.dataset.type;
+                    filterFacilities();
+                });
+            });
+
+            // City filter
+            document.getElementById('cityFilter').addEventListener('change', (e) => {
+                activeCity = e.target.value;
+                filterFacilities();
+            });
+
+            // Discount filter
+            document.getElementById('discountFilter').addEventListener('change', (e) => {
+                activeDiscount = e.target.value;
+                filterFacilities();
+            });
+
+            // Search
+            let searchTimeout;
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    searchQuery = e.target.value;
+                    filterFacilities();
+                }, 300);
+            });
+
+            // Sidebar toggle
+            document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('visible');
+            });
+
+            document.getElementById('closeSidebar').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('visible');
+            });
+
+            // Locate me
+            document.getElementById('locateBtn').addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => {
+                            const { latitude, longitude } = pos.coords;
+                            map.flyTo([latitude, longitude], 12);
+
+                            // Find nearest facility
+                            let nearest = null;
+                            let minDist = Infinity;
+                            filteredFacilities.forEach(f => {
+                                const dist = Math.sqrt(Math.pow(f.lat - latitude, 2) + Math.pow(f.lng - longitude, 2));
+                                if (dist < minDist) {
+                                    minDist = dist;
+                                    nearest = f;
+                                }
+                            });
+
+                            if (nearest) {
+                                const marker = allMarkers.find(m => m.facility === nearest);
+                                if (marker) {
+                                    setTimeout(() => marker.openPopup(), 1000);
+                                }
+                            }
+                        },
+                        (err) => {
+                            console.log('Geolocation error:', err);
+                        }
+                    );
+                }
+            });
+
+            // Fullscreen
+            document.getElementById('fullscreenBtn').addEventListener('click', () => {
+                const elem = document.documentElement;
+                if (!document.fullscreenElement) {
+                    elem.requestFullscreen().catch(err => console.log(err));
+                    document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    document.exitFullscreen();
+                    document.getElementById('fullscreenBtn').innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            });
+
+            // Reset
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                // Reset all filters
+                activeType = 'all';
+                activeCity = 'all';
+                activeDiscount = 'all';
+                searchQuery = '';
+
+                document.getElementById('searchInput').value = '';
+                document.getElementById('cityFilter').value = 'all';
+                document.getElementById('discountFilter').value = 'all';
+
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                document.querySelector('.filter-btn[data-type="all"]').classList.add('active');
+
+                filterFacilities();
+                map.setView([15.5007, 32.5599], 7);
+            });
+
+            // Handle responsive sidebar
+            if (window.innerWidth > 768) {
+                document.getElementById('sidebar').classList.add('visible');
+            }
+
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    document.getElementById('sidebar').classList.add('visible');
+                    document.getElementById('sidebar').classList.remove('hidden');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
